@@ -39,13 +39,13 @@ fn main() {
     let vert_shader1: u32 = gen_shader(&vert_source, gl::VERTEX_SHADER);
     let frag_shader1: u32 = gen_shader(&frag_source1, gl::FRAGMENT_SHADER);
     let shader_program1: u32 = gen_shader_program(vert_shader1, frag_shader1);
-    let vert_arr1: u32 = gen_vao(tri1_vertices);
+    let vao1: u32 = gen_vao(tri1_vertices);
 
     // Generate Triangle 2 Data
     let vert_shader2: u32 = gen_shader(&vert_source, gl::VERTEX_SHADER);
     let frag_shader2: u32 = gen_shader(&frag_source2, gl::FRAGMENT_SHADER);
     let shader_program2: u32 = gen_shader_program(vert_shader2, frag_shader2);
-    let vert_arr2: u32 = gen_vao(tri2_vertices);
+    let vao2: u32 = gen_vao(tri2_vertices);
 
     // Render Loop
     while !window.should_close() {
@@ -53,8 +53,8 @@ fn main() {
         glfw.poll_events();
 
         clear();
-        render_tri(shader_program1, vert_arr1);
-        render_tri(shader_program2, vert_arr2);
+        render_tri(shader_program1, vao1);
+        render_tri(shader_program2, vao2);
         // render_quad(shader_program, ebo, vert_arr);
 
         for (_, event) in glfw::flush_messages(&events) {
@@ -88,12 +88,12 @@ fn render_tri(shader_program: u32, vert_arr: u32) {
     }
 }
 
-fn render_quad(shader_program: u32, ebo: u32, vert_arr: u32) {
+fn render_quad(shader_program: u32, ebo: u32, vao: u32) {
     unsafe {
         gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
 
         gl::UseProgram(shader_program);
-        gl::BindVertexArray(vert_arr);
+        gl::BindVertexArray(vao);
         gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
         gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as _);
         gl::BindVertexArray(0);
