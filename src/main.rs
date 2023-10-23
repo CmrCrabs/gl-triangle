@@ -33,18 +33,17 @@ fn main() {
     let tri2_vertices: [f32; 9] = [0.5, 0.5, 0.0, 0.25, -0.5, 0.0, 0.75, -0.5, 0.0];
 
     // Tri 1 gen
-    let vert_shader1: u32 = gen_vert(tri1_vertices, &vert_source);
-    let frag_shader1: u32 = gen_frag(&frag_source1);
-    let shader_program1: u32 = gen_shader(vert_shader1, frag_shader1);
 
-    let vert_arr1: u32 = gen_vert_arr(tri1_vertices);
+    let vert_shader1: u32 = gen_shader(&vert_source, gl::VERTEX_SHADER);
+    let frag_shader1: u32 = gen_shader(&frag_source1, gl::FRAGMENT_SHADER);
+    let shader_program1: u32 = gen_shader_program(vert_shader1, frag_shader1);
+    let vert_arr1: u32 = gen_vao(tri1_vertices);
 
     // tri 2 Gen
-    let vert_shader2: u32 = gen_vert(tri2_vertices, &vert_source);
-    let frag_shader2: u32 = gen_frag(&frag_source2);
-    let shader_program2: u32 = gen_shader(vert_shader2, frag_shader2);
-
-    let vert_arr2: u32 = gen_vert_arr(tri2_vertices);
+    let vert_shader2: u32 = gen_shader(&vert_source, gl::VERTEX_SHADER);
+    let frag_shader2: u32 = gen_shader(&frag_source2, gl::FRAGMENT_SHADER);
+    let shader_program2: u32 = gen_shader_program(vert_shader2, frag_shader2);
+    let vert_arr2: u32 = gen_vao(tri2_vertices);
 
     link_vert_attributes();
 
@@ -101,62 +100,29 @@ fn set_viewport() {
     }
 }
 
-fn gen_vert(vertices: [f32; 9], vert_source: &String) -> u32 {
+fn gen_shader(source: &String, shader_type: u32) -> u32 {
     unsafe {
-        let mut vert_buf: u32 = 0;
-        gl::GenBuffers(1, &mut vert_buf);
-        gl::BindBuffer(gl::ARRAY_BUFFER, vert_buf);
-
-        gl::BufferData(
-            gl::ARRAY_BUFFER,
-            (vertices.len() * 4) as _,
-            vertices.as_ptr() as _,
-            gl::STATIC_DRAW,
-        );
-
-        let vert_shader: u32 = gl::CreateShader(gl::VERTEX_SHADER);
+        let shader: u32 = gl::CreateShader(shader_type);
         gl::ShaderSource(
-            vert_shader,
+            shader,
             1,
-            &(vert_source.as_bytes().as_ptr().cast()),
-            &(vert_source.len().try_into().unwrap()),
+            &(source.as_bytes().as_ptr().cast()),
+            &(source.len().try_into().unwrap()),
         );
-        gl::CompileShader(vert_shader);
+        gl::CompileShader(shader);
 
         let mut success: i32 = 0;
         let log = CString::from_vec_unchecked(vec![0; 1024]);
-        gl::GetShaderiv(vert_shader, gl::COMPILE_STATUS, &mut success);
+        gl::GetShaderiv(shader, gl::COMPILE_STATUS, &mut success);
         if success == 0 {
-            gl::GetShaderInfoLog(vert_shader, 1024, std::ptr::null_mut(), log.as_ptr() as _);
+            gl::GetShaderInfoLog(shader, 1024, std::ptr::null_mut(), log.as_ptr() as _);
             panic!("Could not compile shader, error:\n {:?}", log.to_str());
         }
-        vert_shader
+        shader
     }
 }
 
-fn gen_frag(frag_source: &String) -> u32 {
-    unsafe {
-        let frag_shader: u32 = gl::CreateShader(gl::FRAGMENT_SHADER);
-        gl::ShaderSource(
-            frag_shader,
-            1,
-            &(frag_source.as_bytes().as_ptr().cast()),
-            &(frag_source.len().try_into().unwrap()),
-        );
-        gl::CompileShader(frag_shader);
-
-        let mut success: i32 = 0;
-        let log = CString::from_vec_unchecked(vec![0; 1024]);
-        gl::GetShaderiv(frag_shader, gl::COMPILE_STATUS, &mut success);
-        if success == 0 {
-            gl::GetShaderInfoLog(frag_shader, 1024, std::ptr::null_mut(), log.as_ptr() as _);
-            panic!("Could not compile shader, error:\n {:?}", log.to_str());
-        }
-        frag_shader
-    }
-}
-
-fn gen_shader(vert_shader: u32, frag_shader: u32) -> u32 {
+fn gen_shader_program(vert_shader: u32, frag_shader: u32) -> u32 {
     unsafe {
         let shader_program: u32 = gl::CreateProgram();
         gl::AttachShader(shader_program, vert_shader);
@@ -191,8 +157,19 @@ fn link_vert_attributes() {
     }
 }
 
-fn gen_vert_arr(vertices: [f32; 9]) -> u32 {
+fn gen_vao(vertices: [f32; 9]) -> u32 {
     unsafe {
+        let mut vert_buf: u32 = 0;
+        gl::GenBuffers(1, &mut vert_buf);
+        gl::BindBuffer(gl::ARRAY_BUFFER, vert_buf);
+
+        gl::BufferData(
+            gl::ARRAY_BUFFER,
+            (vertices.len() * 4) as _,
+            vertices.as_ptr() as _,
+            gl::STATIC_DRAW,
+        );
+
         let mut vert_arr: u32 = 0;
         gl::GenVertexArrays(1, &mut vert_arr);
 
