@@ -12,7 +12,12 @@ fn main() {
     let frag_source2 =
         fs::read_to_string("assets/shader2.frag").expect("error reading second fragment shader");
 
-    // Init Window
+    // Declaring Vertices
+    let tri1_vertices: [f32; 9] = [-0.5, 0.5, 0.0, -0.75, -0.5, 0.0, -0.25, -0.5, 0.0];
+
+    let tri2_vertices: [f32; 9] = [0.5, 0.5, 0.0, 0.25, -0.5, 0.0, 0.75, -0.5, 0.0];
+
+    // Initialise Window
     let mut glfw = glfw::init(fail_on_errors!()).unwrap();
     glfw.window_hint(WindowHint::ContextVersion(3, 3));
     glfw.window_hint(WindowHint::OpenGlProfile(glfw::OpenGlProfileHint::Core));
@@ -27,25 +32,20 @@ fn main() {
 
     set_viewport();
 
-    // Intiialisation
-    let tri1_vertices: [f32; 9] = [-0.5, 0.5, 0.0, -0.75, -0.5, 0.0, -0.25, -0.5, 0.0];
+    link_vert_attributes();
 
-    let tri2_vertices: [f32; 9] = [0.5, 0.5, 0.0, 0.25, -0.5, 0.0, 0.75, -0.5, 0.0];
-
-    // Tri 1 gen
+    //  Generate Triangle 1 Data
 
     let vert_shader1: u32 = gen_shader(&vert_source, gl::VERTEX_SHADER);
     let frag_shader1: u32 = gen_shader(&frag_source1, gl::FRAGMENT_SHADER);
     let shader_program1: u32 = gen_shader_program(vert_shader1, frag_shader1);
     let vert_arr1: u32 = gen_vao(tri1_vertices);
 
-    // tri 2 Gen
+    // Generate Triangle 2 Data
     let vert_shader2: u32 = gen_shader(&vert_source, gl::VERTEX_SHADER);
     let frag_shader2: u32 = gen_shader(&frag_source2, gl::FRAGMENT_SHADER);
     let shader_program2: u32 = gen_shader_program(vert_shader2, frag_shader2);
     let vert_arr2: u32 = gen_vao(tri2_vertices);
-
-    link_vert_attributes();
 
     // Render Loop
     while !window.should_close() {
@@ -74,6 +74,12 @@ fn clear() {
     }
 }
 
+fn set_viewport() {
+    unsafe {
+        gl::Viewport(0, 0, 800, 600);
+    }
+}
+
 fn render_tri(shader_program: u32, vert_arr: u32) {
     unsafe {
         gl::UseProgram(shader_program);
@@ -91,12 +97,6 @@ fn render_quad(shader_program: u32, ebo: u32, vert_arr: u32) {
         gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
         gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as _);
         gl::BindVertexArray(0);
-    }
-}
-
-fn set_viewport() {
-    unsafe {
-        gl::Viewport(0, 0, 800, 600);
     }
 }
 
