@@ -69,7 +69,7 @@ fn main() {
 
 fn clear() {
     unsafe {
-        gl::ClearColor(0.2, 0.3, 0.3, 1.0);
+        gl::ClearColor(1.0, 1.0, 1.0, 1.0);
         gl::Clear(gl::COLOR_BUFFER_BIT);
     }
 }
